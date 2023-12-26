@@ -1,4 +1,4 @@
-FROM eclipse-temurin:8-jdk-alpine
+FROM eclipse-temurin:8-jdk
 
 RUN apk add --no-cache bash procps curl tar
 
