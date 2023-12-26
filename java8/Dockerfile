@@ -1,10 +1,9 @@
-FROM eclipse-temurin:8-jdk
+FROM eclipse-temurin:8-jdk as BUILD
 
-RUN apt-get update \
-  && apt-get install -y ca-certificates curl git --no-install-recommends \
-  && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && \
+    apt-get install -y ca-certificates curl git --no-install-recommends && \
+    rm -rf /var/lib/apt/lists/*
 
-# common for all images
 ENV MAVEN_HOME /usr/share/maven
 
 COPY --from=maven:3.9.6-eclipse-temurin-11 ${MAVEN_HOME} ${MAVEN_HOME}
@@ -20,9 +19,13 @@ ENV MAVEN_CONFIG "$USER_HOME_DIR/.m2"
 ENTRYPOINT ["/usr/local/bin/mvn-entrypoint.sh"]
 
 COPY . .
+
 RUN mvn clean install
 
-CMD ["mvn"]
+FROM openjdk:8-jre-slim-buster
 
 EXPOSE 8080
-ENTRYPOINT ["java","-jar","/target/bootdemo-0.0.1-SNAPSHOT.jar"]
+
+COPY --from=BUILD /target/bootdemo-0.0.1-SNAPSHOT.jar /app.jar
+
+ENTRYPOINT ["java", "-jar", "/app.jar"]
